@@ -1,8 +1,51 @@
-class Node {
+class BaseNode {
     constructor(value) {
         this._value = value;
         this._left = null;
         this._right = null;
+        this._height = 1;
+    }
+
+    get left() { return this._left; }    
+
+    get right() { return this._right; }    
+
+    get value() { return this._value; }
+
+    get height() { return this._height; }
+
+    get balanceFactor() {
+        return null;
+    };
+
+    insertNodeAVL(value) { }
+}
+
+class NullNode extends BaseNode {
+    constructor() {
+        //this._value = null;
+        //this._left = null;
+        //this._right = null;
+        super();
+        this._height = 0;
+    }
+
+    get balanceFactor() {
+        return 0;
+    };
+
+    insertNodeAVL(value) {
+        return new Node(value);
+    };
+};
+
+class Node extends BaseNode {
+    constructor(value) {
+        //this._value = value;        
+        super(value);
+        //this._value = value;        
+        this._left = new NullNode();
+        this._right = new NullNode();
         this._height = 1;
     }
 
@@ -16,148 +59,83 @@ class Node {
 
     get height() { return this._height; }
     set height(height) { this._height = height; }
+
+    get balanceFactor() {
+        return this.right.height - this.left.height;
+    }
+
+    rightRotate() {
+        const left = this.left;
+        const leftRight = left.right;
+
+        //Rotation 
+        this.left = leftRight;
+        left.right = this;
+
+        //Update heights 
+        this.height = Math.max(this.left.height, this.right.height) + 1; 
+        left.height = Math.max(left.left.height, left.right.height) + 1; 
+
+        // Return new root 
+        return left;
+    };
+
+    leftRotate() {
+        const right = this.right;
+        const rightLeft = right.left;
+
+        //Rotation 
+        this.right = rightLeft;
+        right.left = this;
+
+        //Update heights 
+        this.height = Math.max(this.left.height, this.right.height) + 1; 
+        right.height = Math.max(right.left.height, right.right.height) + 1; 
+
+        //Return new root 
+        return right;
+    }; 
+
+    insertNodeAVL(value) {
+        if (value < this.value) {
+            this.left = this.left.insertNodeAVL(value);                
+        }
+        else if (value > this.value) {
+            this.right = this.right.insertNodeAVL(value);
+        }
+
+        this.height = 1 + Math.max(this.left.height, this.right.height); 
+        var balanceFactor = this.balanceFactor;        
+
+        if (balanceFactor > 1) {
+            if (value < this.right.value)
+                this.right = this.right.rightRotate();
+
+            return this.leftRotate();
+        }
+        if (balanceFactor < -1) {
+            if (value > this.left.value)
+                this.left = this.left.leftRotate();
+
+            return this.rightRotate();
+        }
+
+        return this;
+    };
 };
 
 class Tree {
-    constructor(){
-        this.root = null;
+    constructor() {
+        this.root = new NullNode();
     }
 
-    //AVL
-    height(node) { 
-        if (node == null)
-            return 0;
-
-        return node.height;
-    }; 
-
-    getBalanceFactor(node) { 
-        if (node == null)
-            return 0;
-
-        return this.height(node.right) - this.height(node.left);
-    };
-
-    insertNodeAVL(node, newNode) {
-        if (newNode.value < node.value) {
-            if (node.left === null) {
-                node.left = newNode;
-            }
-            else
-                node.left = this.insertNodeAVL(node.left, newNode);
-        }
-        else {
-            if (node.right === null){
-                node.right = newNode;
-            }
-            else
-                node.right = this.insertNodeAVL(node.right, newNode);
-        }
-
-        node.height = 1 + Math.max(this.height(node.left), this.height(node.right)); 
-        var balanceFactor = this.getBalanceFactor(node);
-
-        if (balanceFactor > 1) {
-            if (newNode.value < node.right.value)
-                node.right = this.rightRotate(node.right);
-
-            return this.leftRotate(node);
-        }
-        if (balanceFactor < -1) {
-            if (newNode.value > node.left.value)
-                node.left = this.leftRotate(node.left);
-
-            return this.rightRotate(node);
-        }
-
-        return node; 
-    };
-
     insertAVL(value) {
-            var newNode = new Node(value);
-
-            if (this.root === null) {
-                newNode.height = 1;
-                this.root = newNode;
-            }
-            else
-                this.insertNodeAVL(this.root, newNode);
+        this.root = this.root.insertNodeAVL(value);
     };
     
-    rightRotate(parent) {         
-        var left = parent.left;
-        var leftRight = left.right;
-
-        //Rotation 
-        parent.left = leftRight;
-        left.right = parent;
-
-        //Update heights 
-        parent.height = Math.max(this.height(parent.left), this.height(parent.right)) + 1;
-        left.height = Math.max(this.height(left.left), this.height(left.right)) + 1;
-
-        // Return new root 
-        return left;        
-    }; 
-
-    leftRotate(parent) { 
-        var right = parent.right;
-        var rightLeft = right.left;
-
-        //Rotation 
-        parent.right = rightLeft;
-        right.left = parent;
-
-        //Update heights 
-        parent.height = Math.max(this.height(parent.left), this.height(parent.right)) + 1;
-        right.height = Math.max(this.height(right.left), this.height(right.right)) + 1;
-
-        //Return new root 
-        return right;        
-    }; 
-    
-    //AVL
-
-    //Insert BTS
-    //insert(value) {
-    //    var newNode = new Node(value);
-
-    //    if (this.root === null)
-    //        this.root = newNode;
-    //    else
-
-    //        this.insertNode(this.root, newNode);
-    //};
-        
-    //insertNode(node, newNode)    {
-    //    if (newNode.value < node.value) {
-    //        if (node.left === null)
-    //            node.left = newNode;
-    //        else                
-    //            this.insertNode(node.left, newNode);
-    //    }        
-    //    else {
-    //        if (node.right === null)
-    //            node.right = newNode;
-    //        else                
-    //            this.insertNode(node.right, newNode);
-    //    }
-    //};
-    //Insert BTS
-
-    print(node) {
-        if (node) {
-            this.print(node.left);            
-            document.writeln(node.value);            
-            this.print(node.right);
-        }
-        else
-            return;
-    };
-
     toString(node) {
         let str = '';
-        if (node) {
+        if (node.height) {
             str = '[' + this.toString(node.left) + `, ${node.value}(${node.height}), ` + this.toString(node.right) + ']';
         }
         return str;
